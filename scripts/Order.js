@@ -3,6 +3,16 @@ import Menu from './Menu.js';
 const Order = {
     cart: [],
     load: () => {
+        if (localStorage.getItem('cm-cart')) {
+            try {
+                Order.cart = JSON.parse(localStorage.getItem('cm-cart'));
+                Order.render();
+            }
+            catch (e) {
+                localStorage.removeItem('cm-cart')
+            }
+
+        }
 
     },
     save: () => {
@@ -67,5 +77,6 @@ const Order = {
         }
     }
 }
+Order.load();
 window.Order = Order; // make it "public"
 export default Order;
