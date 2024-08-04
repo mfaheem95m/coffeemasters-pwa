@@ -2,28 +2,35 @@ import Menu from './Menu.js';
 
 const Order = {
     cart: [],
+    load: () => {
+
+    },
+    save: () => {
+        localStorage.setItem('cm-cart', JSON.stringify(Order.cart))
+    },
     add: async id => {
         const product = await Menu.getProductById(id);
-        const results = Order.cart.filter(prodInCart => prodInCart.product.id==id);
+        const results = Order.cart.filter(prodInCart => prodInCart.product.id == id);
         if (results.length == 1) {
             results[0].quantity++;
         } else {
-            Order.cart.push({product, quantity: 1})
+            Order.cart.push({ product, quantity: 1 })
         }
         Order.render();
     },
     remove: (id) => {
-        Order.cart = Order.cart.filter(prodInCart => prodInCart.product.id!=id);
+        Order.cart = Order.cart.filter(prodInCart => prodInCart.product.id != id);
         Order.render();
     },
     place: () => {
-        alert("Your order will be ready under the number " + 
-            parseInt(Math.random()*100));
+        alert("Your order will be ready under the number " +
+            parseInt(Math.random() * 100));
         Order.cart = [];
         Order.render();
     },
     render: () => {
-        if (Order.cart.length==0) {
+        Order.save();
+        if (Order.cart.length == 0) {
             document.querySelector("#order").innerHTML = `
                 <p class="empty">Your order is empty</p>
             `;
