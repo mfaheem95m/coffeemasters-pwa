@@ -2,9 +2,10 @@ import Menu from './Menu.js';
 import Order from './Order.js';
 import Router from './Router.js';
 
+navigator.serviceWorker.register("/serviceworker.js");
 
 (async function () {
-    if (navigator.storage && navigator.storage.persist) {  
+    if (navigator.storage && navigator.storage.persist) {
         if (!await navigator.storage.persisted()) {
             const result = await navigator.storage.persist();
             console.log(`Persisted request returned : ${result}`)
@@ -24,4 +25,4 @@ window.addEventListener("DOMContentLoaded", () => {
     Router.init();
     Menu.load();
     Order.render();
- } );
+});

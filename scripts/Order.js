@@ -2,7 +2,34 @@ import Menu from './Menu.js';
 
 const Order = {
     cart: [],
-    load: () => {
+    openDB: async () => {
+        return await idb.openDB("cm-storage", 1, {
+            async upgrade(db) {
+                await db.createObjectStore("order");
+
+            }
+        })
+    },
+    load: async () => {
+        const db = await idb.openDB("cm-storage")
+        const cart = await db.get("order", "cart")
+        if (cart) {
+
+            try {
+                Order.cart = JSON.parse(cart)
+                Order.render();
+            }
+            catch (e) {
+                console.log("Data Corrupted")
+            }
+        }
+
+    },
+    save: async () => {
+        const db = await Order.openDB();
+        await db.put("order", JSON.stringify(Order.cart), 'cart')
+    },
+    loadWS: () => {
         if (localStorage.getItem('cm-cart')) {
             try {
                 Order.cart = JSON.parse(localStorage.getItem('cm-cart'));
@@ -15,7 +42,7 @@ const Order = {
         }
 
     },
-    save: () => {
+    saveWS: () => {
         localStorage.setItem('cm-cart', JSON.stringify(Order.cart))
     },
     add: async id => {
@@ -37,6 +64,37 @@ const Order = {
             parseInt(Math.random() * 100));
         Order.cart = [];
         Order.render();
+    },
+    importCart: async () => {
+        const [handle] = await window.showOpenFilePicker();
+        const file = await handle.getFile();
+
+        try {
+            const text = await file.text();
+            const json = JSON.parse(text);
+            if (json instanceof Array && json.length > 0) {
+                Order.cart = json
+                Order.render();
+            } else {
+                alert("File is invalid")
+            }
+        } catch (e) {
+            alert("Error reading file ")
+        }
+
+
+    },
+    exportCart: async () => {
+        const handle = await window.showSaveFilePicker({
+            types: [{
+                description: "JSON CoffeeMasters Cart File",
+                accept: { "application/json": [".json", ".txt", ".cart"] }
+            }]
+        })
+        const file = await handle.getFile(); // it's for read-only
+        const writeable = await handle.createWritable() // it's for writing 
+        await writable.write(JSON.stringify(Order.cart));
+        await writable.close();
     },
     render: () => {
         Order.save();
@@ -73,6 +131,19 @@ const Order = {
                     </ul>
                      <button onclick="Order.place()">Place Order</button>
                     `;
+            if (window.showOpenFilePicker) {
+                html += `
+                            <a class="navlink material-symbols-outlined" 
+                                href="javascript:Order.importCart()" style="color: var(--primaryColor")>
+                                file_upload
+                            </a>
+                            <a class="navlink material-symbols-outlined"  
+                                href="javascript:Order.exportCart()" style="color: var(--primaryColor")>
+                                file_download
+                            </a>
+                        `;
+            }
+
             document.querySelector("#order").innerHTML = html;
         }
     }
